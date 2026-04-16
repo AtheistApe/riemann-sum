@@ -45,7 +45,7 @@
 
     .input-group label {
       display: block;
-      font-size: 12px;
+      font-size: 15px;
       color: #555;
       margin-bottom: 4px;
     }
@@ -54,7 +54,7 @@
       width: 100%;
       padding: 7px 10px;
       font-family: 'Courier New', monospace;
-      font-size: 14px;
+      font-size: 16px;
       border: 1px solid #ddd;
       border-radius: 6px;
       background: #fff;
@@ -65,14 +65,14 @@
     input[type="text"]:focus { border-color: #888; }
 
     .hint {
-      font-size: 11px;
+      font-size: 13px;
       color: #888;
       margin-bottom: 10px;
     }
 
     .error-msg {
       display: none;
-      font-size: 12px;
+      font-size: 14px;
       color: #c0392b;
       background: #fdf0ee;
       border: 1px solid #f5c6c0;
@@ -103,7 +103,7 @@
     }
 
     .slider-group label {
-      font-size: 12px;
+      font-size: 15px;
       color: #555;
     }
 
@@ -115,7 +115,7 @@
     }
 
     .slider-val {
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 500;
       font-family: 'Courier New', monospace;
       color: #111;
@@ -128,7 +128,7 @@
     }
 
     .tag-label {
-      font-size: 12px;
+      font-size: 14px;
       color: #666;
       font-style: italic;
       margin-bottom: 16px;
@@ -150,7 +150,7 @@
     }
 
     .metric-card .metric-label {
-      font-size: 11px;
+      font-size: 13px;
       color: #888;
       margin-bottom: 4px;
     }
@@ -163,14 +163,14 @@
     }
 
     .metric-card .metric-val.small {
-      font-size: 14px;
+      font-size: 16px;
       line-height: 1.4;
     }
 
     .legend {
       display: flex;
       gap: 18px;
-      font-size: 11px;
+      font-size: 13px;
       color: #777;
       flex-wrap: wrap;
     }
@@ -204,6 +204,27 @@
 
     .positive { color: #2563eb; }
     .negative { color: #dc2626; }
+
+    .n-max-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: #555;
+    }
+    .n-max-group input {
+      width: 52px;
+      padding: 3px 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: #fff;
+      color: #111;
+      text-align: center;
+      outline: none;
+    }
+    .n-max-group input:focus { border-color: #888; }
   </style>
 </head>
 <body>
@@ -240,6 +261,10 @@
       <div class="slider-row">
         <label>Subintervals <em>n</em></label>
         <span class="slider-val" id="nOut">8</span>
+        <span class="n-max-group">
+          max:
+          <input type="text" id="nMaxVal" value="50">
+        </span>
       </div>
       <input type="range" id="nSlider" min="1" max="50" value="8" step="1">
     </div>
@@ -454,7 +479,7 @@ function draw() {
   ctx.beginPath(); ctx.moveTo(M.left, M.top - 2); ctx.lineTo(M.left - 3, M.top + 6); ctx.lineTo(M.left + 3, M.top + 6); ctx.fill();
 
   // Tick labels
-  ctx.font = '11px "Courier New", monospace';
+  ctx.font = '13px "Courier New", monospace';
   ctx.fillStyle = 'rgba(70,70,70,0.85)';
   ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   t = Math.ceil(a / xStep) * xStep;
@@ -475,7 +500,7 @@ function draw() {
     y += yStep;
   }
   // Axis labels
-  ctx.fillStyle = 'rgba(90,90,90,0.65)'; ctx.font = '12px sans-serif';
+  ctx.fillStyle = 'rgba(90,90,90,0.65)'; ctx.font = '14px sans-serif';
   ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
   ctx.fillText('t', M.left + PW + 8, yAx);
   ctx.textAlign = 'center'; ctx.textBaseline = 'top';
@@ -565,6 +590,19 @@ document.getElementById('cSlider').addEventListener('input', function () {
   state.c = +this.value;
   document.getElementById('cOut').textContent = (+this.value).toFixed(2);
   draw();
+});
+document.getElementById('nMaxVal').addEventListener('input', function () {
+  const v = parseInt(this.value, 10);
+  if (v >= 1) {
+    const slider = document.getElementById('nSlider');
+    slider.max = v;
+    if (state.n > v) {
+      state.n = v;
+      slider.value = v;
+      document.getElementById('nOut').textContent = v;
+      draw();
+    }
+  }
 });
 
 // Initial render
