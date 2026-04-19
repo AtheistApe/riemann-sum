@@ -225,6 +225,39 @@
       outline: none;
     }
     .n-max-group input:focus { border-color: #888; }
+
+    .sum-type {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 14px;
+      font-size: 14px;
+      color: #555;
+    }
+    .sum-type-label {
+      font-weight: 500;
+      color: #333;
+    }
+    .sum-type input[type="radio"] {
+      accent-color: #555;
+      margin: 0 3px 0 0;
+      cursor: pointer;
+    }
+    .sum-type label {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .slider-group.disabled label,
+    .slider-group.disabled .slider-val {
+      color: #bbb;
+    }
+    .slider-group.disabled input[type="range"] {
+      opacity: 0.3;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -256,6 +289,13 @@
     <canvas id="graph" width="760" height="370"></canvas>
   </div>
 
+  <div class="sum-type">
+    <span class="sum-type-label">Sum type:</span>
+    <label><input type="radio" name="sumType" value="custom" checked> Custom tag</label>
+    <label><input type="radio" name="sumType" value="upper"> Upper sum</label>
+    <label><input type="radio" name="sumType" value="lower"> Lower sum</label>
+  </div>
+
   <div class="sliders">
     <div class="slider-group">
       <div class="slider-row">
@@ -285,7 +325,7 @@
       <div class="metric-val" id="deltaT">–</div>
     </div>
     <div class="metric-card">
-      <div class="metric-label">∑ f(ξᵢ) · Δt</div>
+      <div class="metric-label" id="sumLabel">∑ f(ξᵢ) · Δt</div>
       <div class="metric-val" id="riemannSum">–</div>
     </div>
     <div class="metric-card">
@@ -318,7 +358,7 @@
 <script>
 const canvas = document.getElementById('graph');
 const ctx = canvas.getContext('2d');
-const state = { fn: null, a: 0, b: 2 * Math.PI, n: 8, c: 0.5 };
+const state = { fn: null, a: 0, b: 2 * Math.PI, n: 8, c: 0.5, mode: 'custom' };
 
 function parseExpr(s) {
   try {
@@ -392,12 +432,33 @@ function draw() {
 
   const rects = [];
   let sum = 0;
+  const samples = 80; // samples per subinterval for upper/lower search
   for (let i = 0; i < n; i++) {
     const t0 = a + i * dt;
-    let yi;
-    try { yi = fn(t0 + c * dt); } catch { yi = 0; }
-    if (!isFinite(yi)) yi = 0;
-    rects.push({ t0, t1: t0 + dt, xi: t0 + c * dt, yi });
+    let xi, yi;
+    if (state.mode === 'upper' || state.mode === 'lower') {
+      // sample the subinterval to find max or min
+      let bestT = t0, bestY;
+      try { bestY = fn(t0); } catch { bestY = 0; }
+      if (!isFinite(bestY)) bestY = 0;
+      for (let s = 0; s <= samples; s++) {
+        const ts = t0 + (s / samples) * dt;
+        let ys;
+        try { ys = fn(ts); } catch { ys = 0; }
+        if (!isFinite(ys)) continue;
+        if (state.mode === 'upper' ? ys > bestY : ys < bestY) {
+          bestY = ys;
+          bestT = ts;
+        }
+      }
+      xi = bestT;
+      yi = bestY;
+    } else {
+      xi = t0 + c * dt;
+      try { yi = fn(xi); } catch { yi = 0; }
+      if (!isFinite(yi)) yi = 0;
+    }
+    rects.push({ t0, t1: t0 + dt, xi, yi });
     sum += yi * dt;
   }
 
@@ -545,6 +606,10 @@ function draw() {
   // Update metric cards
   document.getElementById('deltaT').textContent = dt.toFixed(4);
   document.getElementById('riemannSum').textContent = sum.toFixed(4);
+  document.getElementById('sumLabel').textContent =
+    state.mode === 'upper' ? 'Upper sum' :
+    state.mode === 'lower' ? 'Lower sum' :
+    '∑ f(ξᵢ) · Δt';
   const abs = Math.abs(sum);
   document.getElementById('dispResult').innerHTML =
     abs < 1e-8
@@ -554,6 +619,8 @@ function draw() {
         : `<span class="negative">◀ ${abs.toFixed(4)} units leftward</span>`;
 
   document.getElementById('tagLabel').textContent =
+    state.mode === 'upper' ? 'Upper sum: ξᵢ chosen to maximize f on each subinterval' :
+    state.mode === 'lower' ? 'Lower sum: ξᵢ chosen to minimize f on each subinterval' :
     c <= 0.005 ? 'ξᵢ = left endpoint of each subinterval' :
     c >= 0.995 ? 'ξᵢ = right endpoint of each subinterval' :
     Math.abs(c - 0.5) < 0.005 ? 'ξᵢ = midpoint of each subinterval' :
@@ -603,6 +670,20 @@ document.getElementById('nMaxVal').addEventListener('input', function () {
       draw();
     }
   }
+});
+
+// Sum type radio buttons
+document.querySelectorAll('input[name="sumType"]').forEach(radio => {
+  radio.addEventListener('change', function () {
+    state.mode = this.value;
+    const tagSliderGroup = document.getElementById('cSlider').closest('.slider-group');
+    if (state.mode === 'custom') {
+      tagSliderGroup.classList.remove('disabled');
+    } else {
+      tagSliderGroup.classList.add('disabled');
+    }
+    draw();
+  });
 });
 
 // Initial render
