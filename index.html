@@ -487,7 +487,7 @@
 
   <div class="numberline-wrap">
     <div class="numberline-title">Displacement number line</div>
-    <canvas id="numberline" width="750" height="52"></canvas>
+    <canvas id="numberline" width="750" height="58"></canvas>
   </div>
 
   <div class="table-toggle" id="tableToggle">
@@ -533,6 +533,8 @@ const nlCanvas = document.getElementById('numberline');
 const nlCtx = nlCanvas.getContext('2d');
 const state = { fn: null, a: 0, b: 2 * Math.PI, n: 8, c: 0.5, mode: 'custom' };
 let animId = null;
+let nlSpan = 1;  // fixed number line scale, updated only when function/interval changes
+let nlExact = null;
 
 function parseExpr(s) {
   try {
@@ -594,6 +596,24 @@ function computeExact(fn, a, b) {
   return isFinite(result) ? result : null;
 }
 
+function updateNlScale() {
+  const { fn, a, b } = state;
+  if (!fn || a >= b) { nlSpan = 1; nlExact = null; return; }
+  nlExact = computeExact(fn, a, b);
+  // Estimate range of possible sums by sampling a few coarse Riemann sums
+  const dt = (b - a) / 4;
+  let maxAbs = Math.abs(nlExact || 0);
+  for (let ci = 0; ci <= 1; ci += 0.5) {
+    let s = 0;
+    for (let i = 0; i < 4; i++) {
+      const t = a + i * dt + ci * dt;
+      try { const y = fn(t); if (isFinite(y)) s += y * dt; } catch {}
+    }
+    maxAbs = Math.max(maxAbs, Math.abs(s));
+  }
+  nlSpan = Math.max(maxAbs * 1.3, 0.1);
+}
+
 function draw() {
   const { fn, a, b, n, c } = state;
   const mode = state.mode;
@@ -630,10 +650,11 @@ function draw() {
   const samples = 80;
 
   if (mode === 'simpson') {
-    for (let i = 0; i < effN; i++) {
+    // Traditional composite Simpson's: n must be even, pairs of subintervals
+    for (let i = 0; i < effN; i += 2) {
       const t0 = a + i * dt;
-      const t1 = t0 + dt;
-      const tm = (t0 + t1) / 2;
+      const tm = a + (i + 1) * dt;
+      const t1 = a + (i + 2) * dt;
       let y0, ym, y1;
       try { y0 = fn(t0); } catch { y0 = 0; }
       try { ym = fn(tm); } catch { ym = 0; }
@@ -641,8 +662,8 @@ function draw() {
       if (!isFinite(y0)) y0 = 0;
       if (!isFinite(ym)) ym = 0;
       if (!isFinite(y1)) y1 = 0;
-      const area = (dt / 6) * (y0 + 4 * ym + y1);
-      rects.push({ t0, t1, xi: tm, yi: ym, y0, y1, area });
+      const area = (dt / 3) * (y0 + 4 * ym + y1);
+      rects.push({ t0, t1, tm, xi: tm, yi: ym, y0, y1, area });
       sum += area;
     }
   } else if (mode === 'trapezoid') {
@@ -732,65 +753,126 @@ function draw() {
   const dotR = Math.max(2, 4.5 * Math.pow(8 / Math.max(effN, 1), 0.38));
 
   // --- Draw shapes depending on mode ---
+
+  // Helper: fill a curve-to-axis region, splitting at y=0 for correct coloring
+  function fillSplitAtAxis(pts) {
+    // pts: array of {x (screen), val (function value)}
+    // Build segments separated by zero crossings
+    if (pts.length < 2) return;
+    const segs = [];
+    let cur = null;
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i];
+      const pos = p.val >= 0;
+      if (!cur || cur.pos !== pos) {
+        if (cur && i > 0) {
+          // interpolate zero crossing
+          const prev = pts[i - 1];
+          const frac = Math.abs(prev.val) / (Math.abs(prev.val) + Math.abs(p.val));
+          const cx = prev.x + frac * (p.x - prev.x);
+          cur.pts.push({ x: cx, y: yAx });
+          segs.push(cur);
+          cur = { pts: [{ x: cx, y: yAx }], pos };
+        } else {
+          cur = { pts: [], pos };
+        }
+      }
+      cur.pts.push({ x: p.x, y: toY(p.val) });
+    }
+    if (cur) segs.push(cur);
+    // Fill each segment
+    for (const seg of segs) {
+      if (seg.pts.length < 2) continue;
+      ctx.fillStyle = seg.pos ? 'rgba(59,130,246,0.18)' : 'rgba(239,68,68,0.18)';
+      ctx.beginPath();
+      ctx.moveTo(seg.pts[0].x, yAx);
+      for (const p of seg.pts) ctx.lineTo(p.x, p.y);
+      ctx.lineTo(seg.pts[seg.pts.length - 1].x, yAx);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = seg.pos ? '#3b82f6' : '#ef4444';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+  }
+
   if (mode === 'trapezoid') {
     for (const r of rects) {
-      const x0 = toX(r.t0), x1 = toX(r.t1);
-      const py0 = toY(r.y0), py1 = toY(r.y1);
-      const avg = (r.y0 + r.y1) / 2;
-      const pos = avg >= 0;
-      ctx.fillStyle = pos ? 'rgba(59,130,246,0.18)' : 'rgba(239,68,68,0.18)';
-      ctx.beginPath();
-      ctx.moveTo(x0, yAx); ctx.lineTo(x0, py0); ctx.lineTo(x1, py1); ctx.lineTo(x1, yAx);
-      ctx.closePath(); ctx.fill();
-      ctx.strokeStyle = pos ? '#3b82f6' : '#ef4444'; ctx.lineWidth = 1.5;
-      ctx.stroke();
+      // Sample the linear top edge
+      const pts = [];
+      const steps = 2; // linear — 2 endpoints suffice, but use more for crossing detection
+      for (let s = 0; s <= 20; s++) {
+        const frac = s / 20;
+        const tx = r.t0 + frac * (r.t1 - r.t0);
+        const val = r.y0 + frac * (r.y1 - r.y0);
+        pts.push({ x: toX(tx), val });
+      }
+      fillSplitAtAxis(pts);
     }
+    // Top edges
     ctx.lineWidth = 2.5;
     for (const r of rects) {
-      const avg = (r.y0 + r.y1) / 2;
-      ctx.strokeStyle = avg >= 0 ? '#2563eb' : '#dc2626';
-      ctx.beginPath(); ctx.moveTo(toX(r.t0), toY(r.y0)); ctx.lineTo(toX(r.t1), toY(r.y1)); ctx.stroke();
+      // Split the top edge stroke at zero crossings too
+      const pts = [{ t: r.t0, val: r.y0 }, { t: r.t1, val: r.y1 }];
+      if ((r.y0 >= 0) !== (r.y1 >= 0)) {
+        // crosses zero — find crossing point
+        const frac = Math.abs(r.y0) / (Math.abs(r.y0) + Math.abs(r.y1));
+        const tc = r.t0 + frac * (r.t1 - r.t0);
+        // draw two segments
+        ctx.strokeStyle = r.y0 >= 0 ? '#2563eb' : '#dc2626';
+        ctx.beginPath(); ctx.moveTo(toX(r.t0), toY(r.y0)); ctx.lineTo(toX(tc), yAx); ctx.stroke();
+        ctx.strokeStyle = r.y1 >= 0 ? '#2563eb' : '#dc2626';
+        ctx.beginPath(); ctx.moveTo(toX(tc), yAx); ctx.lineTo(toX(r.t1), toY(r.y1)); ctx.stroke();
+      } else {
+        ctx.strokeStyle = r.y0 >= 0 ? '#2563eb' : '#dc2626';
+        ctx.beginPath(); ctx.moveTo(toX(r.t0), toY(r.y0)); ctx.lineTo(toX(r.t1), toY(r.y1)); ctx.stroke();
+      }
     }
   } else if (mode === 'simpson') {
+    const stepsS = 32;
     for (const r of rects) {
-      const avg = (r.y0 + 4 * r.yi + r.y1) / 6;
-      const pos = avg >= 0;
-      ctx.fillStyle = pos ? 'rgba(59,130,246,0.18)' : 'rgba(239,68,68,0.18)';
-      ctx.beginPath();
-      ctx.moveTo(toX(r.t0), yAx);
-      const steps = 24;
-      const tm = (r.t0 + r.t1) / 2;
-      for (let s = 0; s <= steps; s++) {
-        const frac = s / steps;
+      // Sample the interpolating parabola
+      const pts = [];
+      for (let s = 0; s <= stepsS; s++) {
+        const frac = s / stepsS;
         const tx = r.t0 + frac * (r.t1 - r.t0);
-        const L0 = ((tx - tm) * (tx - r.t1)) / ((r.t0 - tm) * (r.t0 - r.t1));
-        const L1 = ((tx - r.t0) * (tx - r.t1)) / ((tm - r.t0) * (tm - r.t1));
-        const L2 = ((tx - r.t0) * (tx - tm)) / ((r.t1 - r.t0) * (r.t1 - tm));
-        const py = r.y0 * L0 + r.yi * L1 + r.y1 * L2;
-        ctx.lineTo(toX(tx), toY(py));
+        const L0 = ((tx - r.tm) * (tx - r.t1)) / ((r.t0 - r.tm) * (r.t0 - r.t1));
+        const L1 = ((tx - r.t0) * (tx - r.t1)) / ((r.tm - r.t0) * (r.tm - r.t1));
+        const L2 = ((tx - r.t0) * (tx - r.tm)) / ((r.t1 - r.t0) * (r.t1 - r.tm));
+        const val = r.y0 * L0 + r.yi * L1 + r.y1 * L2;
+        pts.push({ x: toX(tx), val });
       }
-      ctx.lineTo(toX(r.t1), yAx);
-      ctx.closePath(); ctx.fill();
-      ctx.strokeStyle = pos ? '#3b82f6' : '#ef4444'; ctx.lineWidth = 1.5;
-      ctx.stroke();
+      fillSplitAtAxis(pts);
     }
+    // Parabolic top curves — split coloring at axis
     ctx.lineWidth = 2.5;
     for (const r of rects) {
-      const avg = (r.y0 + 4 * r.yi + r.y1) / 6;
-      ctx.strokeStyle = avg >= 0 ? '#2563eb' : '#dc2626';
-      ctx.beginPath();
-      const steps = 24;
-      const tm = (r.t0 + r.t1) / 2;
-      for (let s = 0; s <= steps; s++) {
-        const frac = s / steps;
+      const pts = [];
+      for (let s = 0; s <= stepsS; s++) {
+        const frac = s / stepsS;
         const tx = r.t0 + frac * (r.t1 - r.t0);
-        const L0 = ((tx - tm) * (tx - r.t1)) / ((r.t0 - tm) * (r.t0 - r.t1));
-        const L1 = ((tx - r.t0) * (tx - r.t1)) / ((tm - r.t0) * (tm - r.t1));
-        const L2 = ((tx - r.t0) * (tx - tm)) / ((r.t1 - r.t0) * (r.t1 - tm));
-        const py = r.y0 * L0 + r.yi * L1 + r.y1 * L2;
-        s === 0 ? ctx.moveTo(toX(tx), toY(py)) : ctx.lineTo(toX(tx), toY(py));
+        const L0 = ((tx - r.tm) * (tx - r.t1)) / ((r.t0 - r.tm) * (r.t0 - r.t1));
+        const L1 = ((tx - r.t0) * (tx - r.t1)) / ((r.tm - r.t0) * (r.tm - r.t1));
+        const L2 = ((tx - r.t0) * (tx - r.tm)) / ((r.t1 - r.t0) * (r.t1 - r.tm));
+        const val = r.y0 * L0 + r.yi * L1 + r.y1 * L2;
+        pts.push({ x: toX(tx), val });
       }
-      ctx.stroke();
+      // Draw segments, switching color at zero crossings
+      for (let i = 1; i < pts.length; i++) {
+        const prev = pts[i - 1], cur = pts[i];
+        if ((prev.val >= 0) !== (cur.val >= 0)) {
+          // crossing — split
+          const frac = Math.abs(prev.val) / (Math.abs(prev.val) + Math.abs(cur.val));
+          const cx = prev.x + frac * (cur.x - prev.x);
+          ctx.strokeStyle = prev.val >= 0 ? '#2563eb' : '#dc2626';
+          ctx.beginPath(); ctx.moveTo(prev.x, toY(prev.val)); ctx.lineTo(cx, yAx); ctx.stroke();
+          ctx.strokeStyle = cur.val >= 0 ? '#2563eb' : '#dc2626';
+          ctx.beginPath(); ctx.moveTo(cx, yAx); ctx.lineTo(cur.x, toY(cur.val)); ctx.stroke();
+        } else {
+          ctx.strokeStyle = cur.val >= 0 ? '#2563eb' : '#dc2626';
+          ctx.beginPath(); ctx.moveTo(prev.x, toY(prev.val)); ctx.lineTo(cur.x, toY(cur.val)); ctx.stroke();
+        }
+      }
     }
   } else {
     // Rectangles (custom / upper / lower)
@@ -920,8 +1002,8 @@ function updateMetrics(data) {
     upper: 'Upper sum: ξᵢ chosen to maximize f on each subinterval',
     lower: 'Lower sum: ξᵢ chosen to minimize f on each subinterval',
     trapezoid: 'Trapezoid rule: area of trapezoid on each subinterval',
-    simpson: "Simpson's rule: parabolic interpolation on each subinterval" +
-             (state.n % 2 !== 0 ? ` (n adjusted to ${effN} for even requirement)` : '')
+    simpson: "Simpson's rule: parabola through each pair of subintervals (n/2 = " + (effN / 2) + " pairs)" +
+             (state.n % 2 !== 0 ? ` · n adjusted to ${effN} (must be even)` : '')
   };
   document.getElementById('tagLabel').textContent = tagTexts[mode] ||
     (c <= 0.005 ? 'ξᵢ = left endpoint of each subinterval' :
@@ -929,7 +1011,7 @@ function updateMetrics(data) {
      Math.abs(c - 0.5) < 0.005 ? 'ξᵢ = midpoint of each subinterval' :
      `ξᵢ = tᵢ₋₁ + ${c.toFixed(2)}·Δt  (${Math.round(c * 100)}% into subinterval)`);
 
-  const exact = computeExact(fn, a, b);
+  const exact = nlExact;
   if (exact !== null) {
     document.getElementById('exactVal').textContent = exact.toFixed(6);
     document.getElementById('errorVal').textContent = Math.abs(exact - sum).toFixed(6);
@@ -945,19 +1027,20 @@ function updateMetrics(data) {
 function drawNumberline(sum) {
   const W = nlCanvas.width, H = nlCanvas.height;
   nlCtx.clearRect(0, 0, W, H);
-  const pad = 40;
+  const padL = 40;
   const lineY = H / 2;
-  const lineW = W - 2 * pad;
+  const lineW = W - 2 * padL;
 
-  const absSum = Math.abs(sum);
-  const span = Math.max(absSum * 1.5, 1);
-  const toX = v => pad + (v / span + 1) / 2 * lineW;
-  const arrowEnd = Math.max(pad + 4, Math.min(pad + lineW - 4, toX(sum)));
+  // Use fixed span, but widen if current sum exceeds it
+  const span = Math.max(nlSpan, Math.abs(sum) * 1.2, 0.1);
+  const toX = v => padL + (v / span + 1) / 2 * lineW;
 
+  // Axis line
   nlCtx.strokeStyle = 'rgba(70,70,70,0.5)';
   nlCtx.lineWidth = 1.5;
-  nlCtx.beginPath(); nlCtx.moveTo(pad, lineY); nlCtx.lineTo(pad + lineW, lineY); nlCtx.stroke();
+  nlCtx.beginPath(); nlCtx.moveTo(padL, lineY); nlCtx.lineTo(padL + lineW, lineY); nlCtx.stroke();
 
+  // Zero tick
   const zeroX = toX(0);
   nlCtx.strokeStyle = 'rgba(70,70,70,0.7)';
   nlCtx.lineWidth = 1.5;
@@ -967,12 +1050,27 @@ function drawNumberline(sum) {
   nlCtx.textAlign = 'center'; nlCtx.textBaseline = 'top';
   nlCtx.fillText('0', zeroX, lineY + 11);
 
-  if (absSum < 1e-8) return;
+  // Exact integral tick mark
+  if (nlExact !== null && Math.abs(nlExact) > 1e-8) {
+    const exactX = Math.max(padL + 2, Math.min(padL + lineW - 2, toX(nlExact)));
+    nlCtx.strokeStyle = '#d97706';
+    nlCtx.lineWidth = 1.5;
+    nlCtx.beginPath(); nlCtx.moveTo(exactX, lineY - 10); nlCtx.lineTo(exactX, lineY + 10); nlCtx.stroke();
+    nlCtx.fillStyle = '#d97706';
+    nlCtx.font = '10px sans-serif';
+    nlCtx.textAlign = 'center'; nlCtx.textBaseline = 'top';
+    nlCtx.fillText('exact', exactX, lineY + 12);
+  }
 
+  if (Math.abs(sum) < 1e-8) return;
+
+  // Arrow from 0 to sum
+  const arrowEnd = Math.max(padL + 4, Math.min(padL + lineW - 4, toX(sum)));
   const color = sum > 0 ? '#2563eb' : '#dc2626';
   nlCtx.strokeStyle = color; nlCtx.fillStyle = color; nlCtx.lineWidth = 3;
   nlCtx.beginPath(); nlCtx.moveTo(zeroX, lineY); nlCtx.lineTo(arrowEnd, lineY); nlCtx.stroke();
 
+  // Arrowhead
   const dir = sum > 0 ? 1 : -1;
   nlCtx.beginPath();
   nlCtx.moveTo(arrowEnd, lineY);
@@ -980,6 +1078,7 @@ function drawNumberline(sum) {
   nlCtx.lineTo(arrowEnd - dir * 8, lineY + 5);
   nlCtx.closePath(); nlCtx.fill();
 
+  // Value label
   nlCtx.font = '12px "Courier New", monospace';
   nlCtx.textAlign = 'center'; nlCtx.textBaseline = 'bottom';
   nlCtx.fillText(sum.toFixed(4), (zeroX + arrowEnd) / 2, lineY - 6);
@@ -1024,6 +1123,7 @@ function update() {
   if (a !== null) state.a = a;
   if (b !== null) state.b = b;
   document.getElementById('presetSelect').value = '';
+  updateNlScale();
   draw();
 }
 
@@ -1083,6 +1183,7 @@ document.getElementById('presetSelect').addEventListener('change', function () {
   if (a !== null) state.a = a;
   if (b !== null) state.b = b;
   document.getElementById('errorMsg').style.display = 'none';
+  updateNlScale();
   draw();
 });
 
@@ -1131,6 +1232,7 @@ document.getElementById('animateBtn').addEventListener('click', function () {
 
 // Initial render
 state.fn = parseExpr('sin(t)').fn;
+updateNlScale();
 draw();
 </script>
 </body>
