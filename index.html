@@ -35,6 +35,31 @@
       margin-bottom: 1.5rem;
     }
 
+    .preset-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .preset-row label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      white-space: nowrap;
+    }
+    .preset-row select {
+      flex: 1;
+      padding: 6px 10px;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: #fff;
+      color: #111;
+      cursor: pointer;
+      outline: none;
+    }
+    .preset-row select:focus { border-color: #888; }
+
     .input-row {
       display: grid;
       grid-template-columns: 2fr 1fr 1fr;
@@ -95,6 +120,31 @@
       height: auto;
     }
 
+    .sum-type {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      font-size: 14px;
+      color: #555;
+      flex-wrap: wrap;
+    }
+    .sum-type-label {
+      font-weight: 500;
+      color: #333;
+    }
+    .sum-type input[type="radio"] {
+      accent-color: #555;
+      margin: 0 3px 0 0;
+      cursor: pointer;
+    }
+    .sum-type label {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
     .sliders {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -127,6 +177,56 @@
       cursor: pointer;
     }
 
+    .slider-group.disabled label,
+    .slider-group.disabled .slider-val {
+      color: #bbb;
+    }
+    .slider-group.disabled input[type="range"] {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    .n-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .n-max-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: #555;
+    }
+    .n-max-group input {
+      width: 52px;
+      padding: 3px 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: #fff;
+      color: #111;
+      text-align: center;
+      outline: none;
+    }
+    .n-max-group input:focus { border-color: #888; }
+
+    .animate-btn {
+      padding: 3px 10px;
+      font-size: 13px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fff;
+      color: #555;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .animate-btn:hover { background: #f0f0f0; border-color: #aaa; }
+    .animate-btn.running { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
+
     .tag-label {
       font-size: 14px;
       color: #666;
@@ -139,7 +239,7 @@
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
       gap: 10px;
-      margin-bottom: 14px;
+      margin-bottom: 10px;
     }
 
     .metric-card {
@@ -166,6 +266,81 @@
       font-size: 16px;
       line-height: 1.4;
     }
+
+    .metrics-extra {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .numberline-wrap {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background: #fff;
+      padding: 10px 14px 14px;
+      margin-bottom: 14px;
+    }
+    .numberline-title {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 6px;
+    }
+
+    .table-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #555;
+      user-select: none;
+    }
+    .table-toggle:hover { color: #111; }
+    .table-toggle .arrow {
+      display: inline-block;
+      transition: transform 0.2s;
+      font-size: 11px;
+    }
+    .table-toggle .arrow.open { transform: rotate(90deg); }
+
+    .values-table-wrap {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #e8e8e8;
+      border-radius: 8px;
+      margin-bottom: 14px;
+    }
+    .values-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      font-family: 'Courier New', monospace;
+    }
+    .values-table th {
+      position: sticky;
+      top: 0;
+      background: #f5f4f1;
+      font-weight: 500;
+      font-size: 12px;
+      color: #555;
+      padding: 7px 10px;
+      text-align: right;
+      border-bottom: 1px solid #ddd;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    .values-table th:first-child { text-align: center; }
+    .values-table td {
+      padding: 5px 10px;
+      text-align: right;
+      border-bottom: 1px solid #f0f0f0;
+      color: #333;
+    }
+    .values-table td:first-child { text-align: center; color: #888; }
+    .values-table tr:last-child td { border-bottom: none; }
+    .values-table .pos { color: #2563eb; }
+    .values-table .neg { color: #dc2626; }
 
     .legend {
       display: flex;
@@ -204,60 +379,6 @@
 
     .positive { color: #2563eb; }
     .negative { color: #dc2626; }
-
-    .n-max-group {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 13px;
-      color: #555;
-    }
-    .n-max-group input {
-      width: 52px;
-      padding: 3px 6px;
-      font-family: 'Courier New', monospace;
-      font-size: 14px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      background: #fff;
-      color: #111;
-      text-align: center;
-      outline: none;
-    }
-    .n-max-group input:focus { border-color: #888; }
-
-    .sum-type {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 14px;
-      font-size: 14px;
-      color: #555;
-    }
-    .sum-type-label {
-      font-weight: 500;
-      color: #333;
-    }
-    .sum-type input[type="radio"] {
-      accent-color: #555;
-      margin: 0 3px 0 0;
-      cursor: pointer;
-    }
-    .sum-type label {
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 3px;
-    }
-
-    .slider-group.disabled label,
-    .slider-group.disabled .slider-val {
-      color: #bbb;
-    }
-    .slider-group.disabled input[type="range"] {
-      opacity: 0.3;
-      pointer-events: none;
-    }
   </style>
 </head>
 <body>
@@ -266,6 +387,20 @@
 
   <h1>Riemann Sum Visualizer</h1>
   <div class="subtitle">Math 251 · Introduction to Definite Integrals</div>
+
+  <div class="preset-row">
+    <label>Presets:</label>
+    <select id="presetSelect">
+      <option value="">— choose a preset —</option>
+      <option value="sin(t)|0|2*PI" selected>sin(t) on [0, 2π] — net zero</option>
+      <option value="t^2 - 4|-1|5">t² − 4 on [−1, 5] — mixed sign</option>
+      <option value="3|0|4">constant 3 on [0, 4] — exact at any n</option>
+      <option value="t*cos(t)|0|3*PI">t·cos(t) on [0, 3π] — oscillating</option>
+      <option value="exp(-t)*sin(2*t)|0|2*PI">e⁻ᵗ sin(2t) on [0, 2π] — damped</option>
+      <option value="t^3 - 3*t|-2|2">t³ − 3t on [−2, 2] — odd function</option>
+      <option value="sqrt(t)|0|4">√t on [0, 4] — concave down</option>
+    </select>
+  </div>
 
   <div class="input-row">
     <div class="input-group">
@@ -292,23 +427,28 @@
   <div class="sum-type">
     <span class="sum-type-label">Sum type:</span>
     <label><input type="radio" name="sumType" value="custom" checked> Custom tag</label>
-    <label><input type="radio" name="sumType" value="upper"> Upper sum</label>
-    <label><input type="radio" name="sumType" value="lower"> Lower sum</label>
+    <label><input type="radio" name="sumType" value="upper"> Upper</label>
+    <label><input type="radio" name="sumType" value="lower"> Lower</label>
+    <label><input type="radio" name="sumType" value="trapezoid"> Trapezoid</label>
+    <label><input type="radio" name="sumType" value="simpson"> Simpson's</label>
   </div>
 
   <div class="sliders">
     <div class="slider-group">
       <div class="slider-row">
         <label>Subintervals <em>n</em></label>
-        <span class="slider-val" id="nOut">8</span>
-        <span class="n-max-group">
-          max:
-          <input type="text" id="nMaxVal" value="50">
-        </span>
+        <div class="n-controls">
+          <span class="slider-val" id="nOut">8</span>
+          <span class="n-max-group">
+            max:
+            <input type="text" id="nMaxVal" value="50">
+          </span>
+          <button class="animate-btn" id="animateBtn" title="Animate n from 1 to max">▶ Animate</button>
+        </div>
       </div>
       <input type="range" id="nSlider" min="1" max="50" value="8" step="1">
     </div>
-    <div class="slider-group">
+    <div class="slider-group" id="tagSliderGroup">
       <div class="slider-row">
         <label>Tag <em>c</em> ∈ [0, 1]</label>
         <span class="slider-val" id="cOut">0.50</span>
@@ -334,10 +474,41 @@
     </div>
   </div>
 
+  <div class="metrics-extra">
+    <div class="metric-card">
+      <div class="metric-label">∫ f(t) dt  (numerical)</div>
+      <div class="metric-val" id="exactVal">–</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">|Error| = |exact − approx|</div>
+      <div class="metric-val" id="errorVal">–</div>
+    </div>
+  </div>
+
+  <div class="numberline-wrap">
+    <div class="numberline-title">Displacement number line</div>
+    <canvas id="numberline" width="750" height="52"></canvas>
+  </div>
+
+  <div class="table-toggle" id="tableToggle">
+    <span class="arrow" id="tableArrow">▶</span>
+    <span id="tableToggleText">Show subinterval table</span>
+  </div>
+  <div id="tableContainer" style="display:none;">
+    <div class="values-table-wrap">
+      <table class="values-table">
+        <thead>
+          <tr><th>i</th><th>[tᵢ₋₁, tᵢ]</th><th>ξᵢ</th><th>f(ξᵢ)</th><th>Signed area</th></tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
   <div class="legend">
     <span class="legend-item">
       <span class="swatch" style="background:rgba(59,130,246,0.22);border:1.5px solid #3b82f6;"></span>
-      f(ξᵢ) > 0 → rightward
+      f(ξᵢ) &gt; 0 → rightward
     </span>
     <span class="legend-item">
       <span class="swatch" style="background:rgba(239,68,68,0.22);border:1.5px solid #ef4444;"></span>
@@ -358,7 +529,10 @@
 <script>
 const canvas = document.getElementById('graph');
 const ctx = canvas.getContext('2d');
+const nlCanvas = document.getElementById('numberline');
+const nlCtx = nlCanvas.getContext('2d');
 const state = { fn: null, a: 0, b: 2 * Math.PI, n: 8, c: 0.5, mode: 'custom' };
+let animId = null;
 
 function parseExpr(s) {
   try {
@@ -402,8 +576,27 @@ function fmtTick(v, step) {
   return (+v.toFixed(d)).toString();
 }
 
+function computeExact(fn, a, b) {
+  const N = 2000;
+  const h = (b - a) / N;
+  let s = 0;
+  try { s = fn(a) + fn(b); } catch { return null; }
+  if (!isFinite(s)) return null;
+  for (let i = 1; i < N; i++) {
+    const t = a + i * h;
+    try {
+      const y = fn(t);
+      if (!isFinite(y)) return null;
+      s += (i % 2 === 0 ? 2 : 4) * y;
+    } catch { return null; }
+  }
+  const result = s * h / 3;
+  return isFinite(result) ? result : null;
+}
+
 function draw() {
   const { fn, a, b, n, c } = state;
+  const mode = state.mode;
   const W = canvas.width, H = canvas.height;
   const M = { top: 26, right: 20, bottom: 48, left: 60 };
   const PW = W - M.left - M.right, PH = H - M.top - M.bottom;
@@ -416,10 +609,12 @@ function draw() {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(a >= b ? 'Requires a < b' : 'Invalid function', W / 2, H / 2);
+    updateMetrics(null);
     return;
   }
 
-  const dt = (b - a) / n;
+  const effN = (mode === 'simpson' && n % 2 !== 0) ? n + 1 : n;
+  const dt = (b - a) / effN;
   const NS = 600;
   const curvePts = [];
   for (let i = 0; i <= NS; i++) {
@@ -432,41 +627,72 @@ function draw() {
 
   const rects = [];
   let sum = 0;
-  const samples = 80; // samples per subinterval for upper/lower search
-  for (let i = 0; i < n; i++) {
-    const t0 = a + i * dt;
-    let xi, yi;
-    if (state.mode === 'upper' || state.mode === 'lower') {
-      // sample the subinterval to find max or min
-      let bestT = t0, bestY;
-      try { bestY = fn(t0); } catch { bestY = 0; }
-      if (!isFinite(bestY)) bestY = 0;
-      for (let s = 0; s <= samples; s++) {
-        const ts = t0 + (s / samples) * dt;
-        let ys;
-        try { ys = fn(ts); } catch { ys = 0; }
-        if (!isFinite(ys)) continue;
-        if (state.mode === 'upper' ? ys > bestY : ys < bestY) {
-          bestY = ys;
-          bestT = ts;
-        }
-      }
-      xi = bestT;
-      yi = bestY;
-    } else {
-      xi = t0 + c * dt;
-      try { yi = fn(xi); } catch { yi = 0; }
-      if (!isFinite(yi)) yi = 0;
+  const samples = 80;
+
+  if (mode === 'simpson') {
+    for (let i = 0; i < effN; i++) {
+      const t0 = a + i * dt;
+      const t1 = t0 + dt;
+      const tm = (t0 + t1) / 2;
+      let y0, ym, y1;
+      try { y0 = fn(t0); } catch { y0 = 0; }
+      try { ym = fn(tm); } catch { ym = 0; }
+      try { y1 = fn(t1); } catch { y1 = 0; }
+      if (!isFinite(y0)) y0 = 0;
+      if (!isFinite(ym)) ym = 0;
+      if (!isFinite(y1)) y1 = 0;
+      const area = (dt / 6) * (y0 + 4 * ym + y1);
+      rects.push({ t0, t1, xi: tm, yi: ym, y0, y1, area });
+      sum += area;
     }
-    rects.push({ t0, t1: t0 + dt, xi, yi });
-    sum += yi * dt;
+  } else if (mode === 'trapezoid') {
+    for (let i = 0; i < effN; i++) {
+      const t0 = a + i * dt;
+      const t1 = t0 + dt;
+      let y0, y1;
+      try { y0 = fn(t0); } catch { y0 = 0; }
+      try { y1 = fn(t1); } catch { y1 = 0; }
+      if (!isFinite(y0)) y0 = 0;
+      if (!isFinite(y1)) y1 = 0;
+      const area = dt * (y0 + y1) / 2;
+      rects.push({ t0, t1, xi: (t0 + t1) / 2, yi: (y0 + y1) / 2, y0, y1, area });
+      sum += area;
+    }
+  } else {
+    for (let i = 0; i < effN; i++) {
+      const t0 = a + i * dt;
+      let xi, yi;
+      if (mode === 'upper' || mode === 'lower') {
+        let bestT = t0, bestY;
+        try { bestY = fn(t0); } catch { bestY = 0; }
+        if (!isFinite(bestY)) bestY = 0;
+        for (let s = 0; s <= samples; s++) {
+          const ts = t0 + (s / samples) * dt;
+          let ys;
+          try { ys = fn(ts); } catch { ys = 0; }
+          if (!isFinite(ys)) continue;
+          if (mode === 'upper' ? ys > bestY : ys < bestY) {
+            bestY = ys; bestT = ts;
+          }
+        }
+        xi = bestT; yi = bestY;
+      } else {
+        xi = t0 + c * dt;
+        try { yi = fn(xi); } catch { yi = 0; }
+        if (!isFinite(yi)) yi = 0;
+      }
+      rects.push({ t0, t1: t0 + dt, xi, yi, area: yi * dt });
+      sum += yi * dt;
+    }
   }
 
   const validY = [
     ...curvePts.filter(Boolean).map(p => p.y),
-    ...rects.map(r => r.yi),
-    0
+    ...rects.map(r => r.yi), 0
   ];
+  if (mode === 'trapezoid' || mode === 'simpson') {
+    rects.forEach(r => { validY.push(r.y0); validY.push(r.y1); });
+  }
   let yMin = Math.min(...validY), yMax = Math.max(...validY);
   if (!isFinite(yMin) || !isFinite(yMax)) { yMin = -1; yMax = 1; }
   if (Math.abs(yMax - yMin) < 1e-10) { yMin -= 1; yMax += 1; }
@@ -496,45 +722,105 @@ function draw() {
     y += yStep;
   }
 
-  // Subinterval boundary lines (subtle)
+  // Subinterval boundaries
   ctx.strokeStyle = 'rgba(100,100,100,0.2)'; ctx.lineWidth = 0.75;
-  for (let i = 0; i <= n; i++) {
+  for (let i = 0; i <= effN; i++) {
     const px = toX(a + i * dt);
     ctx.beginPath(); ctx.moveTo(px, M.top); ctx.lineTo(px, M.top + PH); ctx.stroke();
   }
 
-  // Rectangles
-  const dotR = Math.max(2, 4.5 * Math.pow(8 / Math.max(n, 1), 0.38));
-  for (const r of rects) {
-    const rx = toX(r.t0), rw = toX(r.t1) - toX(r.t0);
-    const pos = r.yi >= 0;
-    const ryTop = pos ? toY(r.yi) : yAx;
-    const rh = Math.abs(toY(r.yi) - yAx);
-    ctx.fillStyle = pos ? 'rgba(59,130,246,0.18)' : 'rgba(239,68,68,0.18)';
-    ctx.fillRect(rx, ryTop, rw, rh);
-    ctx.strokeStyle = pos ? '#3b82f6' : '#ef4444'; ctx.lineWidth = 1.5;
-    ctx.strokeRect(rx, ryTop, rw, rh);
-  }
+  const dotR = Math.max(2, 4.5 * Math.pow(8 / Math.max(effN, 1), 0.38));
 
-  // Step function horizontal segments
-  ctx.lineWidth = 2.5;
-  for (const r of rects) {
-    ctx.strokeStyle = r.yi >= 0 ? '#2563eb' : '#dc2626';
-    const py = toY(r.yi);
-    ctx.beginPath(); ctx.moveTo(toX(r.t0), py); ctx.lineTo(toX(r.t1), py); ctx.stroke();
-  }
-  // Step function vertical connectors
-  ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(100,100,180,0.3)';
-  for (let i = 1; i < rects.length; i++) {
-    const px = toX(rects[i].t0);
-    ctx.beginPath(); ctx.moveTo(px, toY(rects[i-1].yi)); ctx.lineTo(px, toY(rects[i].yi)); ctx.stroke();
+  // --- Draw shapes depending on mode ---
+  if (mode === 'trapezoid') {
+    for (const r of rects) {
+      const x0 = toX(r.t0), x1 = toX(r.t1);
+      const py0 = toY(r.y0), py1 = toY(r.y1);
+      const avg = (r.y0 + r.y1) / 2;
+      const pos = avg >= 0;
+      ctx.fillStyle = pos ? 'rgba(59,130,246,0.18)' : 'rgba(239,68,68,0.18)';
+      ctx.beginPath();
+      ctx.moveTo(x0, yAx); ctx.lineTo(x0, py0); ctx.lineTo(x1, py1); ctx.lineTo(x1, yAx);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = pos ? '#3b82f6' : '#ef4444'; ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+    ctx.lineWidth = 2.5;
+    for (const r of rects) {
+      const avg = (r.y0 + r.y1) / 2;
+      ctx.strokeStyle = avg >= 0 ? '#2563eb' : '#dc2626';
+      ctx.beginPath(); ctx.moveTo(toX(r.t0), toY(r.y0)); ctx.lineTo(toX(r.t1), toY(r.y1)); ctx.stroke();
+    }
+  } else if (mode === 'simpson') {
+    for (const r of rects) {
+      const avg = (r.y0 + 4 * r.yi + r.y1) / 6;
+      const pos = avg >= 0;
+      ctx.fillStyle = pos ? 'rgba(59,130,246,0.18)' : 'rgba(239,68,68,0.18)';
+      ctx.beginPath();
+      ctx.moveTo(toX(r.t0), yAx);
+      const steps = 24;
+      const tm = (r.t0 + r.t1) / 2;
+      for (let s = 0; s <= steps; s++) {
+        const frac = s / steps;
+        const tx = r.t0 + frac * (r.t1 - r.t0);
+        const L0 = ((tx - tm) * (tx - r.t1)) / ((r.t0 - tm) * (r.t0 - r.t1));
+        const L1 = ((tx - r.t0) * (tx - r.t1)) / ((tm - r.t0) * (tm - r.t1));
+        const L2 = ((tx - r.t0) * (tx - tm)) / ((r.t1 - r.t0) * (r.t1 - tm));
+        const py = r.y0 * L0 + r.yi * L1 + r.y1 * L2;
+        ctx.lineTo(toX(tx), toY(py));
+      }
+      ctx.lineTo(toX(r.t1), yAx);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = pos ? '#3b82f6' : '#ef4444'; ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+    ctx.lineWidth = 2.5;
+    for (const r of rects) {
+      const avg = (r.y0 + 4 * r.yi + r.y1) / 6;
+      ctx.strokeStyle = avg >= 0 ? '#2563eb' : '#dc2626';
+      ctx.beginPath();
+      const steps = 24;
+      const tm = (r.t0 + r.t1) / 2;
+      for (let s = 0; s <= steps; s++) {
+        const frac = s / steps;
+        const tx = r.t0 + frac * (r.t1 - r.t0);
+        const L0 = ((tx - tm) * (tx - r.t1)) / ((r.t0 - tm) * (r.t0 - r.t1));
+        const L1 = ((tx - r.t0) * (tx - r.t1)) / ((tm - r.t0) * (tm - r.t1));
+        const L2 = ((tx - r.t0) * (tx - tm)) / ((r.t1 - r.t0) * (r.t1 - tm));
+        const py = r.y0 * L0 + r.yi * L1 + r.y1 * L2;
+        s === 0 ? ctx.moveTo(toX(tx), toY(py)) : ctx.lineTo(toX(tx), toY(py));
+      }
+      ctx.stroke();
+    }
+  } else {
+    // Rectangles (custom / upper / lower)
+    for (const r of rects) {
+      const rx = toX(r.t0), rw = toX(r.t1) - toX(r.t0);
+      const pos = r.yi >= 0;
+      const ryTop = pos ? toY(r.yi) : yAx;
+      const rh = Math.abs(toY(r.yi) - yAx);
+      ctx.fillStyle = pos ? 'rgba(59,130,246,0.18)' : 'rgba(239,68,68,0.18)';
+      ctx.fillRect(rx, ryTop, rw, rh);
+      ctx.strokeStyle = pos ? '#3b82f6' : '#ef4444'; ctx.lineWidth = 1.5;
+      ctx.strokeRect(rx, ryTop, rw, rh);
+    }
+    ctx.lineWidth = 2.5;
+    for (const r of rects) {
+      ctx.strokeStyle = r.yi >= 0 ? '#2563eb' : '#dc2626';
+      const py = toY(r.yi);
+      ctx.beginPath(); ctx.moveTo(toX(r.t0), py); ctx.lineTo(toX(r.t1), py); ctx.stroke();
+    }
+    ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(100,100,180,0.3)';
+    for (let i = 1; i < rects.length; i++) {
+      const px = toX(rects[i].t0);
+      ctx.beginPath(); ctx.moveTo(px, toY(rects[i-1].yi)); ctx.lineTo(px, toY(rects[i].yi)); ctx.stroke();
+    }
   }
 
   // Axes
   ctx.strokeStyle = 'rgba(70,70,70,0.8)'; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(M.left, yAx); ctx.lineTo(M.left + PW, yAx); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(M.left, M.top); ctx.lineTo(M.left, M.top + PH); ctx.stroke();
-  // Arrowheads
   ctx.fillStyle = 'rgba(70,70,70,0.8)';
   ctx.beginPath(); ctx.moveTo(M.left + PW + 2, yAx); ctx.lineTo(M.left + PW - 6, yAx - 3); ctx.lineTo(M.left + PW - 6, yAx + 3); ctx.fill();
   ctx.beginPath(); ctx.moveTo(M.left, M.top - 2); ctx.lineTo(M.left - 3, M.top + 6); ctx.lineTo(M.left + 3, M.top + 6); ctx.fill();
@@ -560,32 +846,29 @@ function draw() {
     if (Math.abs(py - yAx) > 9) ctx.fillText(fmtTick(y, yStep), M.left - 7, py);
     y += yStep;
   }
-  // Axis labels
   ctx.fillStyle = 'rgba(90,90,90,0.65)'; ctx.font = '14px sans-serif';
   ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
   ctx.fillText('t', M.left + PW + 8, yAx);
   ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   ctx.fillText('f(t)', M.left + 22, M.top + 3);
 
-  // Tag dashed vertical lines from (ξᵢ, 0) to (ξᵢ, f(ξᵢ))
-  ctx.setLineDash([3, 4]); ctx.lineWidth = 1.5;
-  for (const r of rects) {
-    const px = toX(r.xi);
-    ctx.strokeStyle = r.yi >= 0 ? 'rgba(99,102,241,0.72)' : 'rgba(220,38,38,0.65)';
-    ctx.beginPath(); ctx.moveTo(px, yAx); ctx.lineTo(px, toY(r.yi)); ctx.stroke();
-  }
-  ctx.setLineDash([]);
-
-  // Tag dots on x-axis
-  ctx.fillStyle = '#6366f1';
-  for (const r of rects) {
-    ctx.beginPath(); ctx.arc(toX(r.xi), yAx, dotR * 0.65, 0, 2 * Math.PI); ctx.fill();
-  }
-
-  // Tag dots on curve
-  for (const r of rects) {
-    ctx.fillStyle = r.yi >= 0 ? '#2563eb' : '#dc2626';
-    ctx.beginPath(); ctx.arc(toX(r.xi), toY(r.yi), dotR, 0, 2 * Math.PI); ctx.fill();
+  // Tag lines and dots (only for rectangle-based modes)
+  if (mode !== 'trapezoid' && mode !== 'simpson') {
+    ctx.setLineDash([3, 4]); ctx.lineWidth = 1.5;
+    for (const r of rects) {
+      const px = toX(r.xi);
+      ctx.strokeStyle = r.yi >= 0 ? 'rgba(99,102,241,0.72)' : 'rgba(220,38,38,0.65)';
+      ctx.beginPath(); ctx.moveTo(px, yAx); ctx.lineTo(px, toY(r.yi)); ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#6366f1';
+    for (const r of rects) {
+      ctx.beginPath(); ctx.arc(toX(r.xi), yAx, dotR * 0.65, 0, 2 * Math.PI); ctx.fill();
+    }
+    for (const r of rects) {
+      ctx.fillStyle = r.yi >= 0 ? '#2563eb' : '#dc2626';
+      ctx.beginPath(); ctx.arc(toX(r.xi), toY(r.yi), dotR, 0, 2 * Math.PI); ctx.fill();
+    }
   }
 
   // Function curve — amber, drawn last
@@ -603,28 +886,126 @@ function draw() {
   }
   ctx.stroke();
 
-  // Update metric cards
+  updateMetrics({ sum, dt, effN, rects });
+}
+
+function updateMetrics(data) {
+  if (!data) {
+    ['deltaT','riemannSum','dispResult','exactVal','errorVal'].forEach(id =>
+      document.getElementById(id).textContent = '–');
+    drawNumberline(0);
+    updateTable([]);
+    return;
+  }
+  const { sum, dt, effN, rects } = data;
+  const mode = state.mode;
+  const { fn, a, b, c } = state;
+
   document.getElementById('deltaT').textContent = dt.toFixed(4);
-  document.getElementById('riemannSum').textContent = sum.toFixed(4);
-  document.getElementById('sumLabel').textContent =
-    state.mode === 'upper' ? 'Upper sum' :
-    state.mode === 'lower' ? 'Lower sum' :
-    '∑ f(ξᵢ) · Δt';
-  const abs = Math.abs(sum);
+  document.getElementById('riemannSum').textContent = sum.toFixed(6);
+
+  const labels = { custom:'∑ f(ξᵢ) · Δt', upper:'Upper sum', lower:'Lower sum',
+                   trapezoid:'Trapezoid rule', simpson:"Simpson's rule" };
+  document.getElementById('sumLabel').textContent = labels[mode] || labels.custom;
+
+  const absS = Math.abs(sum);
   document.getElementById('dispResult').innerHTML =
-    abs < 1e-8
+    absS < 1e-8
       ? '<span style="color:#888">≈ 0 (no net motion)</span>'
       : sum > 0
-        ? `<span class="positive">▶ ${abs.toFixed(4)} units rightward</span>`
-        : `<span class="negative">◀ ${abs.toFixed(4)} units leftward</span>`;
+        ? `<span class="positive">▶ ${absS.toFixed(4)} rightward</span>`
+        : `<span class="negative">◀ ${absS.toFixed(4)} leftward</span>`;
 
-  document.getElementById('tagLabel').textContent =
-    state.mode === 'upper' ? 'Upper sum: ξᵢ chosen to maximize f on each subinterval' :
-    state.mode === 'lower' ? 'Lower sum: ξᵢ chosen to minimize f on each subinterval' :
-    c <= 0.005 ? 'ξᵢ = left endpoint of each subinterval' :
-    c >= 0.995 ? 'ξᵢ = right endpoint of each subinterval' :
-    Math.abs(c - 0.5) < 0.005 ? 'ξᵢ = midpoint of each subinterval' :
-    `ξᵢ = tᵢ₋₁ + ${c.toFixed(2)}·Δt  (${Math.round(c * 100)}% into subinterval)`;
+  const tagTexts = {
+    upper: 'Upper sum: ξᵢ chosen to maximize f on each subinterval',
+    lower: 'Lower sum: ξᵢ chosen to minimize f on each subinterval',
+    trapezoid: 'Trapezoid rule: area of trapezoid on each subinterval',
+    simpson: "Simpson's rule: parabolic interpolation on each subinterval" +
+             (state.n % 2 !== 0 ? ` (n adjusted to ${effN} for even requirement)` : '')
+  };
+  document.getElementById('tagLabel').textContent = tagTexts[mode] ||
+    (c <= 0.005 ? 'ξᵢ = left endpoint of each subinterval' :
+     c >= 0.995 ? 'ξᵢ = right endpoint of each subinterval' :
+     Math.abs(c - 0.5) < 0.005 ? 'ξᵢ = midpoint of each subinterval' :
+     `ξᵢ = tᵢ₋₁ + ${c.toFixed(2)}·Δt  (${Math.round(c * 100)}% into subinterval)`);
+
+  const exact = computeExact(fn, a, b);
+  if (exact !== null) {
+    document.getElementById('exactVal').textContent = exact.toFixed(6);
+    document.getElementById('errorVal').textContent = Math.abs(exact - sum).toFixed(6);
+  } else {
+    document.getElementById('exactVal').textContent = '—';
+    document.getElementById('errorVal').textContent = '—';
+  }
+
+  drawNumberline(sum);
+  updateTable(rects);
+}
+
+function drawNumberline(sum) {
+  const W = nlCanvas.width, H = nlCanvas.height;
+  nlCtx.clearRect(0, 0, W, H);
+  const pad = 40;
+  const lineY = H / 2;
+  const lineW = W - 2 * pad;
+
+  const absSum = Math.abs(sum);
+  const span = Math.max(absSum * 1.5, 1);
+  const toX = v => pad + (v / span + 1) / 2 * lineW;
+  const arrowEnd = Math.max(pad + 4, Math.min(pad + lineW - 4, toX(sum)));
+
+  nlCtx.strokeStyle = 'rgba(70,70,70,0.5)';
+  nlCtx.lineWidth = 1.5;
+  nlCtx.beginPath(); nlCtx.moveTo(pad, lineY); nlCtx.lineTo(pad + lineW, lineY); nlCtx.stroke();
+
+  const zeroX = toX(0);
+  nlCtx.strokeStyle = 'rgba(70,70,70,0.7)';
+  nlCtx.lineWidth = 1.5;
+  nlCtx.beginPath(); nlCtx.moveTo(zeroX, lineY - 8); nlCtx.lineTo(zeroX, lineY + 8); nlCtx.stroke();
+  nlCtx.font = '12px "Courier New", monospace';
+  nlCtx.fillStyle = '#666';
+  nlCtx.textAlign = 'center'; nlCtx.textBaseline = 'top';
+  nlCtx.fillText('0', zeroX, lineY + 11);
+
+  if (absSum < 1e-8) return;
+
+  const color = sum > 0 ? '#2563eb' : '#dc2626';
+  nlCtx.strokeStyle = color; nlCtx.fillStyle = color; nlCtx.lineWidth = 3;
+  nlCtx.beginPath(); nlCtx.moveTo(zeroX, lineY); nlCtx.lineTo(arrowEnd, lineY); nlCtx.stroke();
+
+  const dir = sum > 0 ? 1 : -1;
+  nlCtx.beginPath();
+  nlCtx.moveTo(arrowEnd, lineY);
+  nlCtx.lineTo(arrowEnd - dir * 8, lineY - 5);
+  nlCtx.lineTo(arrowEnd - dir * 8, lineY + 5);
+  nlCtx.closePath(); nlCtx.fill();
+
+  nlCtx.font = '12px "Courier New", monospace';
+  nlCtx.textAlign = 'center'; nlCtx.textBaseline = 'bottom';
+  nlCtx.fillText(sum.toFixed(4), (zeroX + arrowEnd) / 2, lineY - 6);
+}
+
+function updateTable(rects) {
+  const tbody = document.getElementById('tableBody');
+  if (rects.length === 0 || rects.length > 200) {
+    tbody.innerHTML = rects.length > 200
+      ? '<tr><td colspan="5" style="text-align:center;color:#888;font-family:sans-serif;">Table hidden for n > 200</td></tr>'
+      : '';
+    return;
+  }
+  let html = '';
+  for (let i = 0; i < rects.length; i++) {
+    const r = rects[i];
+    const cls = r.area >= 0 ? 'pos' : 'neg';
+    html += `<tr>
+      <td>${i + 1}</td>
+      <td>[${r.t0.toFixed(4)}, ${r.t1.toFixed(4)}]</td>
+      <td>${r.xi.toFixed(4)}</td>
+      <td class="${r.yi >= 0 ? 'pos' : 'neg'}">${r.yi.toFixed(4)}</td>
+      <td class="${cls}">${r.area.toFixed(6)}</td>
+    </tr>`;
+  }
+  tbody.innerHTML = html;
 }
 
 function update() {
@@ -642,22 +1023,27 @@ function update() {
   state.fn = err ? null : fn;
   if (a !== null) state.a = a;
   if (b !== null) state.b = b;
+  document.getElementById('presetSelect').value = '';
   draw();
 }
 
+// --- Event listeners ---
 document.getElementById('fnExpr').addEventListener('input', update);
 document.getElementById('aVal').addEventListener('input', update);
 document.getElementById('bVal').addEventListener('input', update);
+
 document.getElementById('nSlider').addEventListener('input', function () {
   state.n = +this.value;
   document.getElementById('nOut').textContent = this.value;
   draw();
 });
+
 document.getElementById('cSlider').addEventListener('input', function () {
   state.c = +this.value;
   document.getElementById('cOut').textContent = (+this.value).toFixed(2);
   draw();
 });
+
 document.getElementById('nMaxVal').addEventListener('input', function () {
   const v = parseInt(this.value, 10);
   if (v >= 1) {
@@ -672,18 +1058,75 @@ document.getElementById('nMaxVal').addEventListener('input', function () {
   }
 });
 
-// Sum type radio buttons
 document.querySelectorAll('input[name="sumType"]').forEach(radio => {
   radio.addEventListener('change', function () {
     state.mode = this.value;
-    const tagSliderGroup = document.getElementById('cSlider').closest('.slider-group');
+    const tagGroup = document.getElementById('tagSliderGroup');
     if (state.mode === 'custom') {
-      tagSliderGroup.classList.remove('disabled');
+      tagGroup.classList.remove('disabled');
     } else {
-      tagSliderGroup.classList.add('disabled');
+      tagGroup.classList.add('disabled');
     }
     draw();
   });
+});
+
+document.getElementById('presetSelect').addEventListener('change', function () {
+  if (!this.value) return;
+  const [expr, aStr, bStr] = this.value.split('|');
+  document.getElementById('fnExpr').value = expr;
+  document.getElementById('aVal').value = aStr;
+  document.getElementById('bVal').value = bStr;
+  const { fn, error } = parseExpr(expr);
+  state.fn = error ? null : fn;
+  const a = parseNum(aStr), b = parseNum(bStr);
+  if (a !== null) state.a = a;
+  if (b !== null) state.b = b;
+  document.getElementById('errorMsg').style.display = 'none';
+  draw();
+});
+
+document.getElementById('tableToggle').addEventListener('click', function () {
+  const container = document.getElementById('tableContainer');
+  const arrow = document.getElementById('tableArrow');
+  const text = document.getElementById('tableToggleText');
+  const visible = container.style.display !== 'none';
+  container.style.display = visible ? 'none' : 'block';
+  arrow.classList.toggle('open', !visible);
+  text.textContent = visible ? 'Show subinterval table' : 'Hide subinterval table';
+});
+
+document.getElementById('animateBtn').addEventListener('click', function () {
+  if (animId !== null) {
+    clearInterval(animId);
+    animId = null;
+    this.textContent = '▶ Animate';
+    this.classList.remove('running');
+    return;
+  }
+  const slider = document.getElementById('nSlider');
+  const maxN = +slider.max;
+  state.n = 1;
+  slider.value = 1;
+  document.getElementById('nOut').textContent = '1';
+  draw();
+
+  this.textContent = '■ Stop';
+  this.classList.add('running');
+
+  animId = setInterval(() => {
+    state.n++;
+    if (state.n > maxN) {
+      clearInterval(animId);
+      animId = null;
+      document.getElementById('animateBtn').textContent = '▶ Animate';
+      document.getElementById('animateBtn').classList.remove('running');
+      return;
+    }
+    slider.value = state.n;
+    document.getElementById('nOut').textContent = state.n;
+    draw();
+  }, 120);
 });
 
 // Initial render
