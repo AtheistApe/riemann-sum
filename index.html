@@ -379,6 +379,75 @@
 
     .positive { color: #2563eb; }
     .negative { color: #dc2626; }
+
+    /* Piecewise editor */
+    .pw-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: #555;
+      cursor: pointer;
+      margin-left: 8px;
+      user-select: none;
+      vertical-align: middle;
+    }
+    .pw-toggle input[type="checkbox"] {
+      accent-color: #555;
+      cursor: pointer;
+    }
+    .pw-editor {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+    .pw-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 14px;
+      color: #555;
+    }
+    .pw-row input[type="text"] {
+      font-size: 14px;
+      padding: 5px 8px;
+    }
+    .pw-row .pw-expr {
+      flex: 2;
+      min-width: 0;
+    }
+    .pw-row .pw-bound {
+      width: 70px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .pw-row .pw-label {
+      font-size: 13px;
+      color: #888;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .pw-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .pw-btn {
+      padding: 4px 12px;
+      font-size: 13px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fff;
+      color: #555;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .pw-btn:hover { background: #f0f0f0; }
+    .pw-btn.remove { color: #c0392b; border-color: #e0c0bc; }
+    .pw-btn.remove:hover { background: #fdf0ee; }
   </style>
 </head>
 <body>
@@ -399,12 +468,13 @@
       <option value="exp(-t)*sin(2*t)|0|2*PI">e⁻ᵗ sin(2t) on [0, 2π] — damped</option>
       <option value="t^3 - 3*t|-2|2">t³ − 3t on [−2, 2] — odd function</option>
       <option value="sqrt(t)|0|4">√t on [0, 4] — concave down</option>
+      <option value="pw:(-8*t+40,8)(25/7*(t-15),15)(6*(t-15),20)|0|20">piecewise: velocity example</option>
     </select>
   </div>
 
-  <div class="input-row">
+  <div class="input-row" id="singleFnRow">
     <div class="input-group">
-      <label>f(t)</label>
+      <label>f(t) <span class="pw-toggle"><input type="checkbox" id="pwCheck"> piecewise</span></label>
       <input type="text" id="fnExpr" value="sin(t)" placeholder="e.g. t*cos(t), t^2 - 3">
     </div>
     <div class="input-group">
@@ -414,6 +484,14 @@
     <div class="input-group">
       <label>b (end)</label>
       <input type="text" id="bVal" value="2*PI">
+    </div>
+  </div>
+
+  <div class="pw-editor" id="pwEditor" style="display:none;">
+    <div id="pwRows"></div>
+    <div class="pw-buttons">
+      <button class="pw-btn" id="pwAddBtn">+ Add piece</button>
+      <button class="pw-btn remove" id="pwRemoveBtn">− Remove last</button>
     </div>
   </div>
   <div class="hint">Supports: sin, cos, tan, sqrt, abs, exp, log (=ln), PI, E &nbsp;·&nbsp; Use <code>^</code> or <code>**</code> for powers</div>
@@ -1127,10 +1205,95 @@ function update() {
   draw();
 }
 
+// --- Piecewise editor ---
+let pwMode = false;
+let pwPieces = [
+  { expr: '', bound: '' },
+  { expr: '', bound: '' }
+];
+
+function renderPwRows() {
+  const container = document.getElementById('pwRows');
+  const aText = document.getElementById('aVal').value || 'a';
+  let html = '';
+  for (let i = 0; i < pwPieces.length; i++) {
+    const p = pwPieces[i];
+    const isLast = (i === pwPieces.length - 1);
+    const leftLabel = i === 0 ? aText : (pwPieces[i - 1].bound || '?');
+    const exprEsc = p.expr.replace(/"/g, '&quot;');
+    html += `<div class="pw-row">
+      <span class="pw-label">${i + 1}.</span>
+      <input type="text" class="pw-expr" value="${exprEsc}" data-idx="${i}" placeholder="expression">
+      <span class="pw-label">for ${leftLabel} ≤ t ≤</span>
+      ${isLast
+        ? `<span class="pw-label" style="width:70px;text-align:center;">${document.getElementById('bVal').value || 'b'}</span>`
+        : `<input type="text" class="pw-bound" value="${p.bound}" data-idx="${i}" placeholder="endpoint">`
+      }
+    </div>`;
+  }
+  container.innerHTML = html;
+
+  // Attach listeners to new inputs
+  container.querySelectorAll('.pw-expr').forEach(el => {
+    el.addEventListener('input', function () {
+      pwPieces[+this.dataset.idx].expr = this.value;
+      buildPwExpr();
+    });
+  });
+  container.querySelectorAll('.pw-bound').forEach(el => {
+    el.addEventListener('input', function () {
+      pwPieces[+this.dataset.idx].bound = this.value;
+      renderPwRows(); // re-render to update labels
+      buildPwExpr();
+    });
+  });
+}
+
+function buildPwExpr() {
+  // Build nested ternary from pieces
+  if (pwPieces.length === 1) {
+    document.getElementById('fnExpr').value = pwPieces[0].expr;
+  } else {
+    let expr = '';
+    for (let i = 0; i < pwPieces.length; i++) {
+      const p = pwPieces[i];
+      if (i < pwPieces.length - 1) {
+        expr += `(t <= ${p.bound} ? ${p.expr} : `;
+      } else {
+        expr += p.expr;
+      }
+    }
+    expr += ')'.repeat(pwPieces.length - 1);
+    document.getElementById('fnExpr').value = expr;
+  }
+  document.getElementById('presetSelect').value = '';
+  update();
+}
+
+function parsePwPreset(val) {
+  // Format: "pw:(expr1,bound1)(expr2,bound2)(expr3,bound3)|a|b"
+  const [pwPart, aStr, bStr] = val.split('|');
+  const body = pwPart.slice(3); // remove "pw:"
+  const matches = [...body.matchAll(/\(([^,]+),([^)]+)\)/g)];
+  pwPieces = matches.map((m, i) => ({
+    expr: m[1],
+    bound: i < matches.length - 1 ? m[2] : ''
+  }));
+  document.getElementById('aVal').value = aStr;
+  document.getElementById('bVal').value = bStr;
+  // Enable piecewise mode
+  document.getElementById('pwCheck').checked = true;
+  pwMode = true;
+  document.getElementById('fnExpr').style.display = 'none';
+  document.getElementById('pwEditor').style.display = 'block';
+  renderPwRows();
+  buildPwExpr();
+}
+
 // --- Event listeners ---
 document.getElementById('fnExpr').addEventListener('input', update);
-document.getElementById('aVal').addEventListener('input', update);
-document.getElementById('bVal').addEventListener('input', update);
+document.getElementById('aVal').addEventListener('input', function () { if (pwMode) renderPwRows(); update(); });
+document.getElementById('bVal').addEventListener('input', function () { if (pwMode) renderPwRows(); update(); });
 
 document.getElementById('nSlider').addEventListener('input', function () {
   state.n = +this.value;
@@ -1173,6 +1336,17 @@ document.querySelectorAll('input[name="sumType"]').forEach(radio => {
 
 document.getElementById('presetSelect').addEventListener('change', function () {
   if (!this.value) return;
+  if (this.value.startsWith('pw:')) {
+    parsePwPreset(this.value);
+    return;
+  }
+  // Disable piecewise mode if active
+  if (pwMode) {
+    pwMode = false;
+    document.getElementById('pwCheck').checked = false;
+    document.getElementById('fnExpr').style.display = '';
+    document.getElementById('pwEditor').style.display = 'none';
+  }
   const [expr, aStr, bStr] = this.value.split('|');
   document.getElementById('fnExpr').value = expr;
   document.getElementById('aVal').value = aStr;
@@ -1185,6 +1359,50 @@ document.getElementById('presetSelect').addEventListener('change', function () {
   document.getElementById('errorMsg').style.display = 'none';
   updateNlScale();
   draw();
+});
+
+// Piecewise checkbox toggle
+document.getElementById('pwCheck').addEventListener('change', function () {
+  pwMode = this.checked;
+  const fnInput = document.getElementById('fnExpr');
+  if (pwMode) {
+    fnInput.style.display = 'none';
+    document.getElementById('pwEditor').style.display = 'block';
+    // Initialize with 2 empty pieces if current pieces are defaults and don't match
+    if (pwPieces.length < 2) {
+      pwPieces = [
+        { expr: '', bound: '' },
+        { expr: '', bound: '' }
+      ];
+    }
+    renderPwRows();
+    buildPwExpr();
+  } else {
+    fnInput.style.display = '';
+    document.getElementById('pwEditor').style.display = 'none';
+  }
+});
+
+// Add piece button
+document.getElementById('pwAddBtn').addEventListener('click', function () {
+  // The current last piece needs a boundary now
+  if (pwPieces.length > 0) {
+    const last = pwPieces[pwPieces.length - 1];
+    if (!last.bound) last.bound = '';
+  }
+  pwPieces.push({ expr: '', bound: '' });
+  renderPwRows();
+  buildPwExpr();
+});
+
+// Remove last piece button
+document.getElementById('pwRemoveBtn').addEventListener('click', function () {
+  if (pwPieces.length <= 2) return; // keep at least 2 pieces
+  pwPieces.pop();
+  // Clear boundary on new last piece
+  pwPieces[pwPieces.length - 1].bound = '';
+  renderPwRows();
+  buildPwExpr();
 });
 
 document.getElementById('tableToggle').addEventListener('click', function () {
